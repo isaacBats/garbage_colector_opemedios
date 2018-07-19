@@ -30,10 +30,6 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             $result = DB::select("SELECT id_noticia, id_tipo_fuente FROM noticia WHERE date_format(fecha, '%Y-%m') = '2015-01'");
             Log::info('Asi se manda un log');
-            Log::alert('Log de alerta');
-            Log::error('Log de error');
-            Log::warning('Log de warning');
-            Log::debug('Log debug');
             dd($result);
         })
         ->appendOutputTo($filePath);
