@@ -34,24 +34,9 @@ class ExampleController extends Controller
         Log::info('Ordenando noticias por fuente...');
         $groupBySource = array();
         foreach ($noticias as $noticia) {
-            if(in_array($noticia->fuente, $groupBySource)) {
-                $groupBySource[$noticia->fuente][] = $noticia->id_noticia;
-            }
             $groupBySource[$noticia->fuente][] = $noticia->id_noticia;
         }
 
-        return $groupBySource;
-
-        // $tipos = array_values( array_unique( array_column( $products_in_collection, 'tipo' ) ) );
-        // $products = array();
-        // foreach ($products_in_collection as $item)
-        // {                
-        //     if( in_array( $item['tipo'], $tipos ) )
-        //     {
-        //         $products[ $item['tipo'].'/'.$item['_type'] ][] = $item;
-        //     }
-        // }
-
-        return response()->json($noticias, 200);
+        return response()->json($groupBySource, 200);
     }
 }
