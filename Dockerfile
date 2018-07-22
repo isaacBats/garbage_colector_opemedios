@@ -8,14 +8,10 @@ RUN apt-get update && apt-get install -y \
     docker-php-ext-install mcrypt pdo_mysql zip gd && \
     curl --silent --show-error https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-WORKDIR /var/www/html
+WORKDIR /var/app
 
-ADD . /var/www/html
+ADD . /var/app
 
 RUN composer install
 
-EXPOSE 3000 8080
-
 USER root
-
-CMD ["bash"]
