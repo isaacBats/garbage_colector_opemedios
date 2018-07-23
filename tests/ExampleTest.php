@@ -31,6 +31,6 @@ class ExampleTest extends TestCase
             ->select()
             ->get();
 
-        $this->assertEquals($fuentes->count(), 5);
+        $this->assertEquals($fuentes->count(), 6);
     }
 }
