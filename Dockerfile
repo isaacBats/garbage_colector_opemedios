@@ -1,4 +1,4 @@
-FROM php:7.1-apache
+FROM php:7.1
 
 MAINTAINER "Isaac Daniel Batista <klonate@gmail.com>"
 
@@ -15,3 +15,7 @@ ADD . /var/app
 RUN composer install
 
 USER root
+
+EXPOSE 8080
+
+CMD ["bash"]
