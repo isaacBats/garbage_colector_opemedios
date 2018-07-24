@@ -63,6 +63,17 @@ class ExampleController extends Controller
         $counts->deletedFilesColFin = 0;
         $counts->filesNotExistColFin = 0;
 
+        // contador columnas financieras
+        $counts->columnasPoliticas = 0;
+        $counts->deletedFilesColPol = 0;
+        $counts->filesNotExistColPol = 0;
+
+
+        // contador primeras planas
+        $counts->primerasPlanas = 0;
+        $counts->deletedFilesPrimeraPlana = 0;
+        $counts->filesNotExistPrimeraPlana = 0;
+
         // Log::info("Obteniendo las noticias entre {$fechaIni} y {$fechaFin}");
         // $noticias = DB::table('noticia')
         //     ->select('id_noticia', 'id_tipo_fuente as fuente') 
@@ -242,9 +253,9 @@ class ExampleController extends Controller
         Log::info("Numero de cartones: {$counts->cartones}");
         Log::info("Resultado: {$cartones}");
         Log::info('Iniciando el borrado de archivos de cartones.');
-        foreach ($cartones as $objCarton) {
-            if($counts->cartones > 0) {
-                Log::info('Validando si existen los archivos');
+        Log::info('Validando si existen los archivos');
+        if($counts->cartones > 0) {
+            foreach ($cartones as $objCarton) {
                 $filePath = env('PATH_MEDIA_CARTONES') . $objCarton->imagen;
                 if (file_exists($filePath)) {
                     if(unlink($filePath)) {
@@ -257,14 +268,14 @@ class ExampleController extends Controller
                     $counts->filesNotExist++;
                     Log::info("El archivo {$filePath} no existe");
                 }
-            } else {
-                $counts->deletedFilesCartones = 0;
-                Log::info('No hay archivos de cartones para borrar');
             }
+        } else {
+            $counts->deletedFilesCartones = 0;
+            Log::info('No hay archivos de cartones para borrar');
         }
 
-        //eliminando cartones
-        Log::info("Obteniendo los columnas financieras entre {$fechaIni} y {$fechaFin}");
+        //eliminando columnas financieras
+        Log::info("Obteniendo las columnas financieras entre {$fechaIni} y {$fechaFin}");
         $colFinancieras = DB::table('columna_financiera')
             ->select('imagen_jpg', 'archivo_pdf')
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
@@ -274,9 +285,9 @@ class ExampleController extends Controller
         Log::info("Numero de columnas financieras: {$counts->columnasFinancieras}");
         Log::info("Resultado: {$colFinancieras}");
         Log::info('Iniciando el borrado de archivos de columnas financieras.');
-        foreach ($colFinancieras as $colFinanciera) {
-            if($counts->columnasFinancieras > 0) {
-                Log::info('Validando si existen los archivos');
+        Log::info('Validando si existen los archivos');
+        if($counts->columnasFinancieras > 0) {
+            foreach ($colFinancieras as $colFinanciera) {
                 $filePathImagen = env('PATH_MEDIA_COL_FINANCIERAS') . $colFinanciera->imagen_jpg;
                 if (file_exists($filePathImagen)) {
                     if(unlink($filePathImagen)) {
@@ -301,10 +312,86 @@ class ExampleController extends Controller
                     $counts->filesNotExist++;
                     Log::info("El archivo {$filePathDoc} no existe");
                 }
-            } else {
-                $counts->columnasFinancieras = 0;
-                Log::info('No hay archivos de columnas financieras para borrar');
             }
+        } else {
+            $counts->columnasFinancieras = 0;
+            Log::info('No hay archivos de columnas financieras para borrar');
+        }
+
+        //eliminando columnas politicas
+        Log::info("Obteniendo las columnas politicas entre {$fechaIni} y {$fechaFin}");
+        $colPoliticas = DB::table('columna_politica')
+            ->select('imagen_jpg', 'archivo_pdf')
+            ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
+            ->get();
+
+        $counts->columnasPoliticas = $colPoliticas->count();
+        Log::info("Numero de columnas politicas: {$counts->columnasPoliticas}");
+        Log::info("Resultado: {$colPoliticas}");
+        Log::info('Iniciando el borrado de archivos de columnas politicas.');
+        Log::info('Validando si existen los archivos');
+        if($counts->columnasPoliticas > 0) {
+            foreach ($colPoliticas as $colPolitica) {
+                $filePathImagen = env('PATH_MEDIA_COL_POLITICAS') . $colPolitica->imagen_jpg;
+                if (file_exists($filePathImagen)) {
+                    if(unlink($filePathImagen)) {
+                        $counts->deletedFiles++;
+                        $counts->deletedFilesColPol++;
+                        Log::info("Se ha borrado el archivo {$filePathImagen}");
+                    }
+                }else {
+                    $counts->filesNotExistColPol++;
+                    $counts->filesNotExist++;
+                    Log::info("El archivo {$filePathImagen} no existe");
+                }
+                $filePathDoc = env('PATH_MEDIA_COL_POLITICAS') . $colPolitica->archivo_pdf;
+                if (file_exists($filePathDoc)) {
+                    if(unlink($filePathDoc)) {
+                        $counts->deletedFiles++;
+                        $counts->deletedFilesColPol++;
+                        Log::info("Se ha borrado el archivo {$filePathDoc}");
+                    }
+                }else {
+                    $counts->filesNotExistColPol++;
+                    $counts->filesNotExist++;
+                    Log::info("El archivo {$filePathDoc} no existe");
+                }
+            }
+        } else {
+            $counts->columnasPoliticas = 0;
+            Log::info('No hay archivos de columnas politicas para borrar');
+        }
+
+        //eliminando primeras planas
+        Log::info("Obteniendo las primeras planas entre {$fechaIni} y {$fechaFin}");
+        $primerasPlanas = DB::table('primera_plana')
+            ->select('imagen')
+            ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
+            ->get();
+
+        $counts->primerasPlanas = $primerasPlanas->count();
+        Log::info("Numero de primeras planas: {$counts->primerasPlanas}");
+        Log::info("Resultado: {$primerasPlanas}");
+        Log::info('Iniciando el borrado de archivos de primeras planas.');
+        Log::info('Validando si existen los archivos');
+        if($counts->primerasPlanas > 0) {
+            foreach ($primerasPlanas as $objPrimeraPlana) {
+                $filePath = env('PATH_MEDIA_PRIMERAS_PLANAS') . $objPrimeraPlana->imagen;
+                if (file_exists($filePath)) {
+                    if(unlink($filePath)) {
+                        $counts->deletedFiles++;
+                        $counts->deletedFilesPrimeraPlana++;
+                        Log::info("Se ha borrado el archivo {$filePath}");
+                    }
+                }else {
+                    $counts->filesNotExistPrimeraPlana++;
+                    $counts->filesNotExist++;
+                    Log::info("El archivo {$filePath} no existe");
+                }
+            }
+        } else {
+            $counts->deletedFilesPrimerasPlanas = 0;
+            Log::info('No hay archivos de primeras planas para borrar');
         }
 
         return response()->json(['reporte de noticias:' => $counts]);
