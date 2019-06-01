@@ -2,10 +2,8 @@
 
 namespace App\Console;
 
-use DB;
 use Illuminate\Console\Scheduling\Schedule;
 use Laravel\Lumen\Console\Kernel as ConsoleKernel;
-use Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -26,13 +24,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $filePath = 'storage/logs/schema'.date('Ymd').'.log';
-        $schedule->call(function () {
-            $result = DB::select("SELECT id_noticia, id_tipo_fuente FROM noticia WHERE date_format(fecha, '%Y-%m') = '2015-01'");
-            Log::info('Asi se manda un log');
-            dd($result);
-        })
-        ->appendOutputTo($filePath);
-        // ->emailOutputTo('klonate@gmail.com');
+        //
     }
 }
