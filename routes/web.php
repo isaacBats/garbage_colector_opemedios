@@ -10,11 +10,25 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
+use App\SystemMonitor;
 
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
 $router->group(['prefix' => 'api'], function () use ($router) {
+
   $router->get('delete-cartones', 'ExampleController@deteleCartones');
+
+  $router->get('system-info', 'SystemController@index');
+  
+  $router->get('create-hardware', function(){
+
+    $hardware = new SystemMonitor();
+
+    $hardware->hardware = 'Disk';
+
+    return $hardware->save();
+  });
+
 });

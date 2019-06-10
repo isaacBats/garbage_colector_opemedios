@@ -75,7 +75,7 @@ class ExampleController extends Controller
         $counts->filesNotExistPrimeraPlana = 0;
 
         Log::info("Obteniendo las noticias entre {$fechaIni} y {$fechaFin}");
-        $noticias = DB::table('noticia')
+        $noticias = DB::connection('mysql')->table('noticia')
             ->select('id_noticia', 'id_tipo_fuente as fuente') 
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
             ->get();
@@ -93,7 +93,7 @@ class ExampleController extends Controller
         foreach ($groupBySource as $key => $idNoticias) {
             if ($key == self::ID_TELEVISION) {
                 Log::info('Buscando archivos de televisión en la base de datos...');
-                $adjuntosTV = DB::table('adjunto')
+                $adjuntosTV = DB::connection('mysql')->table('adjunto')
                     ->select('nombre_archivo')
                     ->whereIn('id_noticia', $idNoticias)
                     ->get();
@@ -123,7 +123,7 @@ class ExampleController extends Controller
 
             if ($key == self::ID_RADIO) {
                 Log::info('Buscando archivos de radio en la base de datos...');
-                $adjuntosRD = DB::table('adjunto')
+                $adjuntosRD = DB::connection('mysql')->table('adjunto')
                     ->select('nombre_archivo')
                     ->whereIn('id_noticia', $idNoticias)
                     ->get();
@@ -153,7 +153,7 @@ class ExampleController extends Controller
 
             if ($key == self::ID_PERIODICO) {
                 Log::info('Buscando archivos de periodicos en la base de datos...');
-                $adjuntosPE = DB::table('adjunto')
+                $adjuntosPE = DB::connection('mysql')->table('adjunto')
                     ->select('nombre_archivo')
                     ->whereIn('id_noticia', $idNoticias)
                     ->get();
@@ -183,7 +183,7 @@ class ExampleController extends Controller
 
             if ($key == self::ID_REVISTA) {
                 Log::info('Buscando archivos de revista en la base de datos...');
-                $adjuntosRE = DB::table('adjunto')
+                $adjuntosRE = DB::connection('mysql')->table('adjunto')
                     ->select('nombre_archivo')
                     ->whereIn('id_noticia', $idNoticias)
                     ->get();
@@ -213,7 +213,7 @@ class ExampleController extends Controller
 
             if ($key == self::ID_INTERNET) {
                 Log::info('Buscando archivos de internet en la base de datos...');
-                $adjuntosIN = DB::table('adjunto')
+                $adjuntosIN = DB::connection('mysql')->table('adjunto')
                     ->select('nombre_archivo')
                     ->whereIn('id_noticia', $idNoticias)
                     ->get();
@@ -244,7 +244,7 @@ class ExampleController extends Controller
 
         //eliminando cartones
         Log::info("Obteniendo los cartones entre {$fechaIni} y {$fechaFin}");
-        $cartones = DB::table('carton')
+        $cartones = DB::connection('mysql')->table('carton')
             ->select('imagen')
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
             ->get();
@@ -276,7 +276,7 @@ class ExampleController extends Controller
 
         //eliminando columnas financieras
         Log::info("Obteniendo las columnas financieras entre {$fechaIni} y {$fechaFin}");
-        $colFinancieras = DB::table('columna_financiera')
+        $colFinancieras = DB::connection('mysql')->table('columna_financiera')
             ->select('imagen_jpg', 'archivo_pdf')
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
             ->get();
@@ -320,7 +320,7 @@ class ExampleController extends Controller
 
         //eliminando columnas politicas
         Log::info("Obteniendo las columnas politicas entre {$fechaIni} y {$fechaFin}");
-        $colPoliticas = DB::table('columna_politica')
+        $colPoliticas = DB::connection('mysql')->table('columna_politica')
             ->select('imagen_jpg', 'archivo_pdf')
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
             ->get();
@@ -364,7 +364,7 @@ class ExampleController extends Controller
 
         //eliminando primeras planas
         Log::info("Obteniendo las primeras planas entre {$fechaIni} y {$fechaFin}");
-        $primerasPlanas = DB::table('primera_plana')
+        $primerasPlanas = DB::connection('mysql')->table('primera_plana')
             ->select('imagen')
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
             ->get();
