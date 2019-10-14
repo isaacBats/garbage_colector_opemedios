@@ -18,17 +18,18 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api'], function () use ($router) {
 
-  $router->get('delete-cartones', 'ExampleController@deteleCartones');
+    $router->get('delete-cartones', 'ExampleController@deteleCartones');
 
-  $router->get('system-info', 'SystemController@index');
+    $router->get('system-info', 'SystemController@index');
+
+    $router->get('info', 'BackupController@index');
   
-  $router->get('create-hardware', function(){
+    $router->get('create-hardware', function () {
 
-    $hardware = new SystemMonitor();
+        $hardware = new SystemMonitor();
 
-    $hardware->hardware = 'Disk';
+        $hardware->hardware = 'Disk';
 
-    return $hardware->save();
-  });
-
+        return $hardware->save();
+    });
 });

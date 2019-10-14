@@ -29,6 +29,9 @@ $app->withFacades();
 
 $app->withEloquent();
 
+// Filesystems
+$app->configure('filesystems');
+
 /*
 |--------------------------------------------------------------------------
 | Register Container Bindings
@@ -49,6 +52,14 @@ $app->singleton(
     Illuminate\Contracts\Console\Kernel::class,
     App\Console\Kernel::class
 );
+
+$app->singleton('filesystem', function ($app) {
+    return $app->loadComponent(
+        'filesystems',
+        Illuminate\Filesystem\FilesystemServiceProvider::class,
+        'filesystem'
+    );
+});
 
 /*
 |--------------------------------------------------------------------------
