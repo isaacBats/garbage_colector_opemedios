@@ -14,4 +14,8 @@ class NoticiaController extends Controller
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$dateMin, $dateMax])
             ->get();
     }
+
+    public function findOrFail($id) {
+        return Noticia::findOrFail($id);
+    }
 }
