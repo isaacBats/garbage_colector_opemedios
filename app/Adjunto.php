@@ -38,4 +38,6 @@ class Adjunto extends Model
     protected $hidden = [
         //
     ];
+
+    protected $primaryKey = 'id_adjunto';
 }

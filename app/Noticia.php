@@ -38,4 +38,6 @@ class Noticia extends Model
     protected $hidden = [
         //
     ];
+
+    protected $primaryKey = 'id_noticia';
 }
