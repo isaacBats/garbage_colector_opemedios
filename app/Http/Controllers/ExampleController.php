@@ -16,6 +16,8 @@ class ExampleController extends Controller
     
     private $cartonController;
     
+    private $columnaFinancieraController;
+    
     private $noticiaController;
 
     private $tipoFuenteController;
@@ -25,10 +27,12 @@ class ExampleController extends Controller
     public function __construct( TipoFuenteController $tipoFuenteController, 
         NoticiaController $noticiaController, 
         AdjuntoController $adjuntoController,
-        CartonController $cartonController )
+        CartonController $cartonController,
+        ColumnaFinancieraController $columnaFinancieraController)
     {
         $this->adjuntoController = $adjuntoController;
         $this->cartonController = $cartonController;
+        $this->columnaFinancieraController = $columnaFinancieraController;
         $this->noticiaController = $noticiaController;
         $this->tipoFuenteController = $tipoFuenteController;
 
@@ -100,8 +104,8 @@ class ExampleController extends Controller
         }
 
         $this->linfo('Iniciando el borrado de archivos de noticias.');
-        foreach ($groupBySource as $key => $idNoticias) {
-            $this->noticiaController->deleteNewByType($key, $idNoticias, $counts, $this->tiposFuente);
+        foreach ($groupBySource as $keyTipoFuente => $idNoticias) {
+            $this->noticiaController->deleteNewByType($keyTipoFuente, $idNoticias, $counts, $this->tiposFuente);
         }
 
         //eliminando cartones
@@ -117,47 +121,14 @@ class ExampleController extends Controller
 
         //eliminando columnas financieras
         $this->linfo("Obteniendo las columnas financieras entre {$fechaIni} y {$fechaFin}");
-        $colFinancieras = DB::connection('mysql')->table('columna_financiera')
-            ->select('imagen_jpg', 'archivo_pdf')
-            ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
-            ->get();
+        $colFinancieras = $this->columnaFinancieraController->getColumnasFinancierasByData($fechaIni, $fechaFin);
 
         $counts->columnasFinancieras = $colFinancieras->count();
         $this->linfo("Numero de columnas financieras: {$counts->columnasFinancieras}");
         $this->linfo("Resultado: {$colFinancieras}");
         $this->linfo('Iniciando el borrado de archivos de columnas financieras.');
         $this->linfo('Validando si existen los archivos');
-        if($counts->columnasFinancieras > 0) {
-            foreach ($colFinancieras as $colFinanciera) {
-                $filePathImagen = env('PATH_MEDIA_COL_FINANCIERAS') . $colFinanciera->imagen_jpg;
-                if (file_exists($filePathImagen)) {
-                    if(unlink($filePathImagen)) {
-                        $counts->deletedFiles++;
-                        $counts->deletedFilesColFin++;
-                        $this->linfo("Se ha borrado el archivo {$filePathImagen}");
-                    }
-                }else {
-                    $counts->filesNotExistColFin++;
-                    $counts->filesNotExist++;
-                    $this->linfo("El archivo {$filePathImagen} no existe");
-                }
-                $filePathDoc = env('PATH_MEDIA_COL_FINANCIERAS') . $colFinanciera->archivo_pdf;
-                if (file_exists($filePathDoc)) {
-                    if(unlink($filePathDoc)) {
-                        $counts->deletedFiles++;
-                        $counts->deletedFilesColFin++;
-                        $this->linfo("Se ha borrado el archivo {$filePathDoc}");
-                    }
-                }else {
-                    $counts->filesNotExistColFin++;
-                    $counts->filesNotExist++;
-                    $this->linfo("El archivo {$filePathDoc} no existe");
-                }
-            }
-        } else {
-            $counts->columnasFinancieras = 0;
-            $this->linfo('No hay archivos de columnas financieras para borrar');
-        }
+        $this->columnaFinancieraController->deleteColumnasFinancieras($colFinancieras, $counts);
 
         //eliminando columnas politicas
         $this->linfo("Obteniendo las columnas politicas entre {$fechaIni} y {$fechaFin}");
