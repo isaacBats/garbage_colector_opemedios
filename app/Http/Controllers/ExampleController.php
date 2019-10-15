@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Adjunto;
+use App\Http\Controllers\AdjuntoController;
 use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\TipoFuenteController;
 use DB;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Log;
 
 class ExampleController extends Controller
 {
@@ -102,7 +100,7 @@ class ExampleController extends Controller
 
         $this->linfo('Iniciando el borrado de archivos de noticias.');
         foreach ($groupBySource as $key => $idNoticias) {
-            $this->deleteNewByType($key, $idNoticias, $counts);
+            $this->noticiaController->deleteNewByType($key, $idNoticias, $counts, $this->tiposFuente);
         }
 
         //eliminando cartones
@@ -259,38 +257,5 @@ class ExampleController extends Controller
 
         return response()->json(['reporte de noticias:' => $counts]);
 
-    }
-
-    protected function deleteNewByType ( $fontTypeId, $idNoticias, &$counts ) {
-        
-        $fontType = Arr::get($this->tiposFuente->toArray(), $fontTypeId - 1);
-        $fontUppercase = strtoupper(Str::slug($fontType['descripcion']));
-        $this->linfo("Buscando archivos de {$fontType['descripcion']} en la base de datos...");
-        $adjuntos = $this->adjuntoController->getAdjuntos($idNoticias);
-        $labelAdjunto = "adjunto{$fontType['sigla']}";
-        $labelDeleteFile = "deletedFiles{$fontType['sigla']}";
-        $labelFileNotExist = "filesNotExist{$fontType['sigla']}";
-        $counts->$labelAdjunto = $adjuntos->count();
-        $this->linfo("Se encontraron {$counts->$labelAdjunto} archivos de  {$fontType['descripcion']} en la base de datos");
-        if($counts->$labelAdjunto > 0) {
-            $labelPathMedia ="PATH_MEDIA_{$fontUppercase}";
-            foreach ($adjuntos as $archivo) {
-                $filePath = env($labelPathMedia) . $archivo->nombre_archivo;
-                if (file_exists($filePath)) {
-                    if(unlink($filePath)) {
-                        $counts->deletedFiles++;
-                        $counts->$labelDeleteFile++;
-                        $this->linfo("Se ha borrado el archivo {$filePath}");
-                    }
-                }else {
-                    $counts->$labelFileNotExist++;
-                    $counts->filesNotExist++;
-                    $this->linfo("El archivo {$filePath} no existe");
-                }
-            }
-        } else {
-            $counts->$labelAdjunto = 0;
-            $this->linfo("No hay archivos de {$fontType['description']} para borrar");
-        }
     }
 }
