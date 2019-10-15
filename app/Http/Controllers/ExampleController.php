@@ -7,6 +7,8 @@ use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\TipoFuenteController;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Log;
 
 class ExampleController extends Controller
@@ -17,26 +19,19 @@ class ExampleController extends Controller
      * @return void
      */
     
-    const ID_INTERNET = 5;
-
-    const ID_REVISTA = 4;
-
-    const ID_PERIODICO = 3;
-
-    const ID_RADIO = 2;
-
-    const ID_TELEVISION = 1;
+    private $adjuntoController;
+    
+    private $noticiaController;
 
     private $tipoFuenteController;
 
-    private $noticiaController;
-
     private $tiposFuente;
 
-    public function __construct( TipoFuenteController $tipoFuenteController, NoticiaController $noticiaController )
+    public function __construct( TipoFuenteController $tipoFuenteController, NoticiaController $noticiaController, AdjuntoController $adjuntoController )
     {
-        $this->tipoFuenteController = $tipoFuenteController;
         $this->noticiaController = $noticiaController;
+        $this->tipoFuenteController = $tipoFuenteController;
+        $this->adjuntoController = $adjuntoController;
 
         $this->linfo('Obteniendo Tipos de Fuente Actuales');
         $this->tiposFuente = $this->tipoFuenteController->getAllFontTypes();
@@ -105,162 +100,9 @@ class ExampleController extends Controller
             $groupBySource[$noticia->fuente][] = $noticia->id_noticia;
         }
 
-        $this->linfo('Obteniendo Tipos de Fuente Actuales');
-        $tiposFuente = $this->tipoFuenteController->getAllFontTypes();
-        $this->linfo("Las Fuentes actuales son: {$tiposFuente}");
-
         $this->linfo('Iniciando el borrado de archivos de noticias.');
         foreach ($groupBySource as $key => $idNoticias) {
-            // $this->deleteByType($tiposFuente, $idNoticias);
-            if ($key == self::ID_TELEVISION) {
-                $this->linfo('Buscando archivos de televisión en la base de datos...');
-                $adjuntosTV = DB::connection('mysql')->table('adjunto')
-                    ->select('nombre_archivo')
-                    ->whereIn('id_noticia', $idNoticias)
-                    ->get();
-                $counts->adjuntoTV = $adjuntosTV->count();
-                $this->linfo("Se encontraron {$counts->adjuntoTV} coincidencias en la base de datos");
-                if($counts->adjuntoTV > 0) {
-                    $this->linfo('Validando si existen los archivos');
-                    foreach ($adjuntosTV as $adjuntoTV) {
-                        $filePath = env('PATH_MEDIA_TELEVISION') . $adjuntoTV->nombre_archivo;
-                        if (file_exists($filePath)) {
-                            if(unlink($filePath)) {
-                                $counts->deletedFiles++;
-                                $counts->deletedFilesTV++;
-                                $this->linfo("Se ha borrado el archivo {$filePath}");
-                            }
-                        }else {
-                            $counts->filesNotExistTV++;
-                            $counts->filesNotExist++;
-                            $this->linfo("El archivo {$filePath} no existe");
-                        }
-                    }
-                } else {
-                    $counts->deletedFilesTV = 0;
-                    $this->linfo('No hay archivos de televisión para borrar');
-                }
-            }
-
-            if ($key == self::ID_RADIO) {
-                $this->linfo('Buscando archivos de radio en la base de datos...');
-                $adjuntosRD = DB::connection('mysql')->table('adjunto')
-                    ->select('nombre_archivo')
-                    ->whereIn('id_noticia', $idNoticias)
-                    ->get();
-                $counts->adjuntoRD = $adjuntosRD->count();
-                $this->linfo("Se encontraron {$counts->adjuntoRD} coincidencias en la base de datos");
-                if($counts->adjuntoRD > 0) {
-                    $this->linfo('Validando si existen los archivos');
-                    foreach ($adjuntosRD as $adjuntoRD) {
-                        $filePath = env('PATH_MEDIA_RADIO') . $adjuntoRD->nombre_archivo;
-                        if (file_exists($filePath)) {
-                            if(unlink($filePath)) {
-                                $counts->deletedFiles++;
-                                $counts->deletedFilesRD++;
-                                $this->linfo("Se ha borrado el archivo {$filePath}");
-                            }
-                        }else {
-                            $counts->filesNotExistRD++;
-                            $counts->filesNotExist++;
-                            $this->linfo("El archivo {$filePath} no existe");
-                        }
-                    }
-                } else {
-                    $counts->deletedFilesRD = 0;
-                    $this->linfo('No hay archivos de radio para borrar');
-                }
-            }
-
-            if ($key == self::ID_PERIODICO) {
-                $this->linfo('Buscando archivos de periodicos en la base de datos...');
-                $adjuntosPE = DB::connection('mysql')->table('adjunto')
-                    ->select('nombre_archivo')
-                    ->whereIn('id_noticia', $idNoticias)
-                    ->get();
-                $counts->adjuntoPE = $adjuntosPE->count();
-                $this->linfo("Se encontraron {$counts->adjuntoPE} coincidencias en la base de datos");
-                if($counts->adjuntoPE > 0) {
-                    $this->linfo('Validando si existen los archivos');
-                    foreach ($adjuntosPE as $adjuntoPE) {
-                        $filePath = env('PATH_MEDIA_PERIODICO') . $adjuntoPE->nombre_archivo;
-                        if (file_exists($filePath)) {
-                            if(unlink($filePath)) {
-                                $counts->deletedFiles++;
-                                $counts->deletedFilesPE++;
-                                $this->linfo("Se ha borrado el archivo {$filePath}");
-                            }
-                        }else {
-                            $counts->filesNotExistPE++;
-                            $counts->filesNotExist++;
-                            $this->linfo("El archivo {$filePath} no existe");
-                        }
-                    }
-                } else {
-                    $counts->deletedFilesPE = 0;
-                    $this->linfo('No hay archivos de periodico para borrar');
-                }
-            }
-
-            if ($key == self::ID_REVISTA) {
-                $this->linfo('Buscando archivos de revista en la base de datos...');
-                $adjuntosRE = DB::connection('mysql')->table('adjunto')
-                    ->select('nombre_archivo')
-                    ->whereIn('id_noticia', $idNoticias)
-                    ->get();
-                $counts->adjuntoRE = $adjuntosRE->count();
-                $this->linfo("Se encontraron {$counts->adjuntoRE} coincidencias en la base de datos");
-                if($counts->adjuntoRE > 0) {
-                    $this->linfo('Validando si existen los archivos');
-                    foreach ($adjuntosRE as $adjuntoRE) {
-                        $filePath = env('PATH_MEDIA_REVISTA') . $adjuntoRE->nombre_archivo;
-                        if (file_exists($filePath)) {
-                            if(unlink($filePath)) {
-                                $counts->deletedFiles++;
-                                $counts->deletedFilesRE++;
-                                $this->linfo("Se ha borrado el archivo {$filePath}");
-                            }
-                        }else {
-                            $counts->filesNotExistRE++;
-                            $counts->filesNotExist++;
-                            $this->linfo("El archivo {$filePath} no existe");
-                        }
-                    }
-                } else {
-                    $counts->deletedFilesRE = 0;
-                    $this->linfo('No hay archivos de revistas para borrar');
-                }
-            }
-
-            if ($key == self::ID_INTERNET) {
-                $this->linfo('Buscando archivos de internet en la base de datos...');
-                $adjuntosIN = DB::connection('mysql')->table('adjunto')
-                    ->select('nombre_archivo')
-                    ->whereIn('id_noticia', $idNoticias)
-                    ->get();
-                $counts->adjuntoIN = $adjuntosIN->count();
-                $this->linfo("Se encontraron {$counts->adjuntoIN} coincidencias en la base de datos");
-                if($counts->adjuntoIN > 0) {
-                    $this->linfo('Validando si existen los archivos');
-                    foreach ($adjuntosIN as $adjuntoIN) {
-                        $filePath = env('PATH_MEDIA_INTERNET') . $adjuntoIN->nombre_archivo;
-                        if (file_exists($filePath)) {
-                            if(unlink($filePath)) {
-                                $counts->deletedFiles++;
-                                $counts->deletedFilesIN++;
-                                $this->linfo("Se ha borrado el archivo {$filePath}");
-                            }
-                        }else {
-                            $counts->filesNotExistIN++;
-                            $counts->filesNotExist++;
-                            $this->linfo("El archivo {$filePath} no existe");
-                        }
-                    }
-                } else {
-                    $counts->deletedFilesIN = 0;
-                    $this->linfo('No hay archivos de internet para borrar');
-                }
-            }
+            $this->deleteNewByType($key, $idNoticias, $counts);
         }
 
         //eliminando cartones
@@ -419,32 +261,36 @@ class ExampleController extends Controller
 
     }
 
-    protected function deleteNew ( $idNew, &$counts) {
-        $this->linfo("Buscando archivos de {$type->descripcion} en la base de datos...");
-        $adjuntos = Adjunto::Select('nombre_archivo')
-            ->whereIn('id_noticia', $idNew)
-            ->get();
-        $counts->adjuntoTV = $adjuntosTV->count();
-        $this->linfo("Se encontraron {$counts->adjuntoTV} coincidencias en la base de datos");
-        if($counts->adjuntoTV > 0) {
-            $this->linfo('Validando si existen los archivos');
-            foreach ($adjuntosTV as $adjuntoTV) {
-                $filePath = env('PATH_MEDIA_TELEVISION') . $adjuntoTV->nombre_archivo;
+    protected function deleteNewByType ( $fontTypeId, $idNoticias, &$counts ) {
+        
+        $fontType = Arr::get($this->tiposFuente->toArray(), $fontTypeId - 1);
+        $fontUppercase = strtoupper(Str::slug($fontType['descripcion']));
+        $this->linfo("Buscando archivos de {$fontType['descripcion']} en la base de datos...");
+        $adjuntos = $this->adjuntoController->getAdjuntos($idNoticias);
+        $labelAdjunto = "adjunto{$fontType['sigla']}";
+        $labelDeleteFile = "deletedFiles{$fontType['sigla']}";
+        $labelFileNotExist = "filesNotExist{$fontType['sigla']}";
+        $counts->$labelAdjunto = $adjuntos->count();
+        $this->linfo("Se encontraron {$counts->$labelAdjunto} archivos de  {$fontType['descripcion']} en la base de datos");
+        if($counts->$labelAdjunto > 0) {
+            $labelPathMedia ="PATH_MEDIA_{$fontUppercase}";
+            foreach ($adjuntos as $archivo) {
+                $filePath = env($labelPathMedia) . $archivo->nombre_archivo;
                 if (file_exists($filePath)) {
                     if(unlink($filePath)) {
                         $counts->deletedFiles++;
-                        $counts->deletedFilesTV++;
+                        $counts->$labelDeleteFile++;
                         $this->linfo("Se ha borrado el archivo {$filePath}");
                     }
                 }else {
-                    $counts->filesNotExistTV++;
+                    $counts->$labelFileNotExist++;
                     $counts->filesNotExist++;
                     $this->linfo("El archivo {$filePath} no existe");
                 }
             }
         } else {
-            $counts->deletedFilesTV = 0;
-            $this->linfo('No hay archivos de televisión para borrar');
+            $counts->$labelAdjunto = 0;
+            $this->linfo("No hay archivos de {$fontType['description']} para borrar");
         }
     }
 }
