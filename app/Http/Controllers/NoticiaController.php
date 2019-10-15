@@ -17,7 +17,7 @@ class NoticiaController extends Controller
         $this->adjuntoController = $adjuntoController;
     }
 
-    public function getNewsin ( $dateMin, $dateMax) {
+    public function getNewsin ($dateMin, $dateMax) {
 
         return Noticia::Select('id_noticia', 'id_tipo_fuente as fuente') 
             ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$dateMin, $dateMax])

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Adjunto;
 use App\Http\Controllers\AdjuntoController;
+use App\Http\Controllers\CartonController;
 use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\TipoFuenteController;
 use DB;
@@ -11,13 +12,9 @@ use Illuminate\Http\Request;
 
 class ExampleController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    
     private $adjuntoController;
+    
+    private $cartonController;
     
     private $noticiaController;
 
@@ -25,11 +22,15 @@ class ExampleController extends Controller
 
     private $tiposFuente;
 
-    public function __construct( TipoFuenteController $tipoFuenteController, NoticiaController $noticiaController, AdjuntoController $adjuntoController )
+    public function __construct( TipoFuenteController $tipoFuenteController, 
+        NoticiaController $noticiaController, 
+        AdjuntoController $adjuntoController,
+        CartonController $cartonController )
     {
+        $this->adjuntoController = $adjuntoController;
+        $this->cartonController = $cartonController;
         $this->noticiaController = $noticiaController;
         $this->tipoFuenteController = $tipoFuenteController;
-        $this->adjuntoController = $adjuntoController;
 
         $this->linfo('Obteniendo Tipos de Fuente Actuales');
         $this->tiposFuente = $this->tipoFuenteController->getAllFontTypes();
@@ -105,35 +106,14 @@ class ExampleController extends Controller
 
         //eliminando cartones
         $this->linfo("Obteniendo los cartones entre {$fechaIni} y {$fechaFin}");
-        $cartones = DB::connection('mysql')->table('carton')
-            ->select('imagen')
-            ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
-            ->get();
+        $cartones = $this->cartonController->getCartonesByData($fechaIni, $fechaFin);
 
         $counts->cartones = $cartones->count();
         $this->linfo("Numero de cartones: {$counts->cartones}");
         $this->linfo("Resultado: {$cartones}");
         $this->linfo('Iniciando el borrado de archivos de cartones.');
         $this->linfo('Validando si existen los archivos');
-        if($counts->cartones > 0) {
-            foreach ($cartones as $objCarton) {
-                $filePath = env('PATH_MEDIA_CARTONES') . $objCarton->imagen;
-                if (file_exists($filePath)) {
-                    if(unlink($filePath)) {
-                        $counts->deletedFiles++;
-                        $counts->deletedFilesCartones++;
-                        $this->linfo("Se ha borrado el archivo {$filePath}");
-                    }
-                }else {
-                    $counts->filesNotExistCartones++;
-                    $counts->filesNotExist++;
-                    $this->linfo("El archivo {$filePath} no existe");
-                }
-            }
-        } else {
-            $counts->deletedFilesCartones = 0;
-            $this->linfo('No hay archivos de cartones para borrar');
-        }
+        $this->cartonController->deleteCartones($cartones, $counts);
 
         //eliminando columnas financieras
         $this->linfo("Obteniendo las columnas financieras entre {$fechaIni} y {$fechaFin}");
