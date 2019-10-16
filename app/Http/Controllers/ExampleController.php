@@ -7,6 +7,7 @@ use App\Http\Controllers\CartonController;
 use App\Http\Controllers\ColumnaFinancieraController;
 use App\Http\Controllers\ColumnaPoliticaController;
 use App\Http\Controllers\NoticiaController;
+use App\Http\Controllers\PrimeraPlanaController;
 use App\Http\Controllers\TipoFuenteController;
 use DB;
 use Illuminate\Http\Request;
