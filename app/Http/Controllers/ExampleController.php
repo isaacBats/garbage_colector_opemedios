@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Adjunto;
 use App\Http\Controllers\AdjuntoController;
 use App\Http\Controllers\CartonController;
+use App\Http\Controllers\ColumnaFinancieraController;
+use App\Http\Controllers\ColumnaPoliticaController;
 use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\TipoFuenteController;
 use DB;
@@ -18,7 +19,11 @@ class ExampleController extends Controller
     
     private $columnaFinancieraController;
     
+    private $columnaPoliticaController;
+    
     private $noticiaController;
+
+    private $primeraPlanaController;
 
     private $tipoFuenteController;
 
@@ -28,13 +33,17 @@ class ExampleController extends Controller
         NoticiaController $noticiaController, 
         AdjuntoController $adjuntoController,
         CartonController $cartonController,
-        ColumnaFinancieraController $columnaFinancieraController)
+        ColumnaFinancieraController $columnaFinancieraController,
+        ColumnaPoliticaController $columnaPoliticaController,
+        PrimeraPlanaController $primeraPlanaController)
     {
         $this->adjuntoController = $adjuntoController;
         $this->cartonController = $cartonController;
         $this->columnaFinancieraController = $columnaFinancieraController;
+        $this->columnaPoliticaController = $columnaPoliticaController;
         $this->noticiaController = $noticiaController;
         $this->tipoFuenteController = $tipoFuenteController;
+        $this->primeraPlanaController = $primeraPlanaController;
 
         $this->linfo('Obteniendo Tipos de Fuente Actuales');
         $this->tiposFuente = $this->tipoFuenteController->getAllFontTypes();
@@ -132,79 +141,25 @@ class ExampleController extends Controller
 
         //eliminando columnas politicas
         $this->linfo("Obteniendo las columnas politicas entre {$fechaIni} y {$fechaFin}");
-        $colPoliticas = DB::connection('mysql')->table('columna_politica')
-            ->select('imagen_jpg', 'archivo_pdf')
-            ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
-            ->get();
+        $colPoliticas = $this->columnaPoliticaController->getColumnasPoliticasByData($fechaIni, $fechaFin);
 
         $counts->columnasPoliticas = $colPoliticas->count();
         $this->linfo("Numero de columnas politicas: {$counts->columnasPoliticas}");
         $this->linfo("Resultado: {$colPoliticas}");
         $this->linfo('Iniciando el borrado de archivos de columnas politicas.');
         $this->linfo('Validando si existen los archivos');
-        if($counts->columnasPoliticas > 0) {
-            foreach ($colPoliticas as $colPolitica) {
-                $filePathImagen = env('PATH_MEDIA_COL_POLITICAS') . $colPolitica->imagen_jpg;
-                if (file_exists($filePathImagen)) {
-                    if(unlink($filePathImagen)) {
-                        $counts->deletedFiles++;
-                        $counts->deletedFilesColPol++;
-                        $this->linfo("Se ha borrado el archivo {$filePathImagen}");
-                    }
-                }else {
-                    $counts->filesNotExistColPol++;
-                    $counts->filesNotExist++;
-                    $this->linfo("El archivo {$filePathImagen} no existe");
-                }
-                $filePathDoc = env('PATH_MEDIA_COL_POLITICAS') . $colPolitica->archivo_pdf;
-                if (file_exists($filePathDoc)) {
-                    if(unlink($filePathDoc)) {
-                        $counts->deletedFiles++;
-                        $counts->deletedFilesColPol++;
-                        $this->linfo("Se ha borrado el archivo {$filePathDoc}");
-                    }
-                }else {
-                    $counts->filesNotExistColPol++;
-                    $counts->filesNotExist++;
-                    $this->linfo("El archivo {$filePathDoc} no existe");
-                }
-            }
-        } else {
-            $counts->columnasPoliticas = 0;
-            $this->linfo('No hay archivos de columnas politicas para borrar');
-        }
+        $this->columnaPoliticaController->deleteColumnasFinancieras($colPoliticas, $counts);
 
         //eliminando primeras planas
         $this->linfo("Obteniendo las primeras planas entre {$fechaIni} y {$fechaFin}");
-        $primerasPlanas = DB::connection('mysql')->table('primera_plana')
-            ->select('imagen')
-            ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$fechaIni, $fechaFin])
-            ->get();
+        $primerasPlanas = $this->primeraPlanaController->getPrimerasPlanasByData($fechaIni, $fechaFin);
 
         $counts->primerasPlanas = $primerasPlanas->count();
         $this->linfo("Numero de primeras planas: {$counts->primerasPlanas}");
         $this->linfo("Resultado: {$primerasPlanas}");
         $this->linfo('Iniciando el borrado de archivos de primeras planas.');
         $this->linfo('Validando si existen los archivos');
-        if($counts->primerasPlanas > 0) {
-            foreach ($primerasPlanas as $objPrimeraPlana) {
-                $filePath = env('PATH_MEDIA_PRIMERAS_PLANAS') . $objPrimeraPlana->imagen;
-                if (file_exists($filePath)) {
-                    if(unlink($filePath)) {
-                        $counts->deletedFiles++;
-                        $counts->deletedFilesPrimeraPlana++;
-                        $this->linfo("Se ha borrado el archivo {$filePath}");
-                    }
-                }else {
-                    $counts->filesNotExistPrimeraPlana++;
-                    $counts->filesNotExist++;
-                    $this->linfo("El archivo {$filePath} no existe");
-                }
-            }
-        } else {
-            $counts->deletedFilesPrimerasPlanas = 0;
-            $this->linfo('No hay archivos de primeras planas para borrar');
-        }
+        $this->primeraPlanaController->deletePrimerasPlanas($primerasPlanas, $counts);
 
         return response()->json(['reporte de noticias:' => $counts]);
 
