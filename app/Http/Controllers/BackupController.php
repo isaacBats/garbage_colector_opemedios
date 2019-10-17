@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\News;
+use App\Noticia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,7 +19,7 @@ class BackupController extends Controller
         // fclose($handle);
         $storagePath = Storage::disk('s3')->put($my_file, 'Test data to see if this works!. Data File system');
 
-        $newLast = News::find(599084);
+        $newLast = Noticia::find(599084);
         return $newLast;
     }
 }

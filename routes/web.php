@@ -23,13 +23,4 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     $router->get('system-info', 'SystemController@index');
 
     $router->get('info', 'BackupController@index');
-  
-    $router->get('create-hardware', function () {
-
-        $hardware = new SystemMonitor();
-
-        $hardware->hardware = 'Disk';
-
-        return $hardware->save();
-    });
 });
