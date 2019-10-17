@@ -60,7 +60,9 @@ return [
             'key' => env('AWS_KEY'),
             'secret' => env('AWS_SECRET'),
             'region' => env('AWS_REGION'),
-            'bucket' => env('AWS_BUCKET'),
+            'version' => '2006-03-01',
+            'endpoint' => env('AWS_ENDPOINT'),
+            'bucket_name' => env('AWS_BUCKET'),
         ],
 
     ],

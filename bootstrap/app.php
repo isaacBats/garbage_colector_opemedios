@@ -94,6 +94,8 @@ $app->singleton('filesystem', function ($app) {
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
+$app->register(App\Providers\AwsS3ServiceProvider::class);
+$app->register(Aws\Laravel\AwsServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
