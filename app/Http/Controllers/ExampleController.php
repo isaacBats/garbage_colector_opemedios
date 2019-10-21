@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\AdjuntoController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CartonController;
 use App\Http\Controllers\ColumnaFinancieraController;
 use App\Http\Controllers\ColumnaPoliticaController;
@@ -90,6 +91,9 @@ class ExampleController extends Controller
         $counts->deletedFilesPrimeraPlana = 0;
         $counts->filesNotExistPrimeraPlana = 0;
 
+        //BackupNumberFiles
+        $counts->bkNumberFiles = 0;
+
         return $counts;
 
     }
@@ -100,7 +104,11 @@ class ExampleController extends Controller
         $fechaFin = $req->query('fecha_fin');
 
         $counts = $this->setup();
-        
+        $backup = new \ZipArchive();
+        $file_compress_name = 'backup_opemedios_media_' . date('Ymd-His') . '.zip';
+        $file_compress = base_path('storage/app/public') . '/' . $file_compress_name;
+        $backup->open($file_compress, \ZipArchive::CREATE);
+
         $this->linfo("Obteniendo las noticias entre {$fechaIni} y {$fechaFin}");
         $noticias = $this->noticiaController->getNewsin($fechaIni, $fechaFin);
         
@@ -115,7 +123,7 @@ class ExampleController extends Controller
 
         $this->linfo('Iniciando el borrado de archivos de noticias.');
         foreach ($groupBySource as $keyTipoFuente => $idNoticias) {
-            $this->noticiaController->deleteNewByType($keyTipoFuente, $idNoticias, $counts, $this->tiposFuente);
+            $this->noticiaController->deleteNewByType($keyTipoFuente, $idNoticias, $counts, $this->tiposFuente, $backup);
         }
 
         //eliminando cartones
@@ -127,7 +135,7 @@ class ExampleController extends Controller
         $this->linfo("Resultado: {$cartones}");
         $this->linfo('Iniciando el borrado de archivos de cartones.');
         $this->linfo('Validando si existen los archivos');
-        $this->cartonController->deleteCartones($cartones, $counts);
+        $this->cartonController->deleteCartones($cartones, $counts, $backup);
 
         //eliminando columnas financieras
         $this->linfo("Obteniendo las columnas financieras entre {$fechaIni} y {$fechaFin}");
@@ -138,7 +146,7 @@ class ExampleController extends Controller
         $this->linfo("Resultado: {$colFinancieras}");
         $this->linfo('Iniciando el borrado de archivos de columnas financieras.');
         $this->linfo('Validando si existen los archivos');
-        $this->columnaFinancieraController->deleteColumnasFinancieras($colFinancieras, $counts);
+        $this->columnaFinancieraController->deleteColumnasFinancieras($colFinancieras, $counts, $backup);
 
         //eliminando columnas politicas
         $this->linfo("Obteniendo las columnas politicas entre {$fechaIni} y {$fechaFin}");
@@ -149,7 +157,7 @@ class ExampleController extends Controller
         $this->linfo("Resultado: {$colPoliticas}");
         $this->linfo('Iniciando el borrado de archivos de columnas politicas.');
         $this->linfo('Validando si existen los archivos');
-        $this->columnaPoliticaController->deleteColumnasFinancieras($colPoliticas, $counts);
+        $this->columnaPoliticaController->deleteColumnasPoliticas($colPoliticas, $counts, $backup);
 
         //eliminando primeras planas
         $this->linfo("Obteniendo las primeras planas entre {$fechaIni} y {$fechaFin}");
@@ -160,9 +168,20 @@ class ExampleController extends Controller
         $this->linfo("Resultado: {$primerasPlanas}");
         $this->linfo('Iniciando el borrado de archivos de primeras planas.');
         $this->linfo('Validando si existen los archivos');
-        $this->primeraPlanaController->deletePrimerasPlanas($primerasPlanas, $counts);
+        $this->primeraPlanaController->deletePrimerasPlanas($primerasPlanas, $counts, $backup);
+
+        $counts->bkNumberFiles = $backup->numFiles;
+        $backup->close();
+
+        if ($counts->bkNumberFiles > 0) {
+            if (BackupController::moveToS3($file_compress_name, $file_compress)) {
+                unlink($file_compress);
+                $this->linfo("Se ha guardado y eliminado el archivo {$file_compress_name} del servidor principal.");
+            } else {
+                $this->lerror("No se pudo guardar el archivo {$file_compress_name} en AWS");
+            }
+        }
 
         return response()->json(['reporte de noticias:' => $counts]);
-
     }
 }

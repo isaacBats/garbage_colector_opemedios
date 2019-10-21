@@ -12,4 +12,10 @@ class Controller extends BaseController
         Log::info($message);
         
     }
+
+    protected function lerror( $message ) {
+
+        Log::error($message);
+        
+    }
 }
