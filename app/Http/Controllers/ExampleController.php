@@ -105,8 +105,9 @@ class ExampleController extends Controller
 
         $counts = $this->setup();
         $backup = new \ZipArchive();
+        $base_path_file = base_path('public/data');
         $file_compress_name = 'backup_opemedios_media_' . date('Ymd-His') . '.zip';
-        $file_compress = base_path('storage/app/public') . '/' . $file_compress_name;
+        $file_compress = "{$base_path_file}/{$file_compress_name}";
         $backup->open($file_compress, \ZipArchive::CREATE);
 
         $this->linfo("Obteniendo las noticias entre {$fechaIni} y {$fechaFin}");
