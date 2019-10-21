@@ -15,11 +15,12 @@ class PrimeraPlanaController extends Controller
             ->get();
     }
 
-    public function deletePrimerasPlanas ($primerasPlanas, &$counts) {
+    public function deletePrimerasPlanas ($primerasPlanas, &$counts, &$backup) {
         if($counts->primerasPlanas > 0) {
             foreach ($primerasPlanas as $objPrimeraPlana) {
                 $filePath = env('PATH_MEDIA_PRIMERAS_PLANAS') . $objPrimeraPlana->imagen;
                 if (file_exists($filePath)) {
+                    $backup->addFile($filePath, $objPrimeraPlana->imagen);
                     if(unlink($filePath)) {
                         $counts->deletedFiles++;
                         $counts->deletedFilesPrimeraPlana++;

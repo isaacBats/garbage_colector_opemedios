@@ -15,11 +15,12 @@ class ColumnaPoliticaController extends Controller
             ->get();
     }
 
-    public function deleteColumnasFinancieras ($colPoliticas, &$counts) {
+    public function deleteColumnasPoliticas ($colPoliticas, &$counts, &$backup) {
         if($counts->columnasPoliticas > 0) {
             foreach ($colPoliticas as $colPolitica) {
                 $filePathImagen = env('PATH_MEDIA_COL_POLITICAS') . $colPolitica->imagen_jpg;
                 if (file_exists($filePathImagen)) {
+                    $backup->addFile($filePathImagen, $colPolitica->imagen_jpg);
                     if(unlink($filePathImagen)) {
                         $counts->deletedFiles++;
                         $counts->deletedFilesColPol++;
@@ -32,6 +33,7 @@ class ColumnaPoliticaController extends Controller
                 }
                 $filePathDoc = env('PATH_MEDIA_COL_POLITICAS') . $colPolitica->archivo_pdf;
                 if (file_exists($filePathDoc)) {
+                    $backup->addFile($filePathDoc, $colPolitica->archivo_pdf);
                     if(unlink($filePathDoc)) {
                         $counts->deletedFiles++;
                         $counts->deletedFilesColPol++;

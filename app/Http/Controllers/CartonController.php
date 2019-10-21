@@ -15,11 +15,12 @@ class CartonController extends Controller
             ->get();
     }
 
-    public function deleteCartones ($cartones, &$counts) {
+    public function deleteCartones ($cartones, &$counts, &$backup) {
         if($counts->cartones > 0) {
             foreach ($cartones as $objCarton) {
                 $filePath = env('PATH_MEDIA_CARTONES') . $objCarton->imagen;
                 if (file_exists($filePath)) {
+                    $backup->addFile($filePath, $objCarton->imagen);
                     if(unlink($filePath)) {
                         $counts->deletedFiles++;
                         $counts->deletedFilesCartones++;

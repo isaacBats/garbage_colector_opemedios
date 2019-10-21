@@ -28,7 +28,7 @@ class NoticiaController extends Controller
         return Noticia::findOrFail($id);
     }
 
-    public function deleteNewByType ( $fontTypeId, $idNoticias, &$counts, $tiposFuente ) {
+    public function deleteNewByType ($fontTypeId, $idNoticias, &$counts, $tiposFuente, &$backup) {
         
         $fontType = Arr::get($tiposFuente->toArray(), $fontTypeId - 1);
         $fontUppercase = strtoupper(Str::slug($fontType['descripcion']));
@@ -44,6 +44,7 @@ class NoticiaController extends Controller
             foreach ($adjuntos as $archivo) {
                 $filePath = env($labelPathMedia) . $archivo->nombre_archivo;
                 if (file_exists($filePath)) {
+                    $backup->addFile($filePath, $archivo->nombre_archivo);
                     if(unlink($filePath)) {
                         $counts->deletedFiles++;
                         $counts->$labelDeleteFile++;

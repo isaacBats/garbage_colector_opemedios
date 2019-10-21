@@ -15,11 +15,12 @@ class ColumnaFinancieraController extends Controller
             ->get();
     }
 
-    public function deleteColumnasFinancieras ($colFinancieras, &$counts) {
+    public function deleteColumnasFinancieras ($colFinancieras, &$counts, &$backup) {
         if($counts->columnasFinancieras > 0) {
             foreach ($colFinancieras as $colFinanciera) {
                 $filePathImagen = env('PATH_MEDIA_COL_FINANCIERAS') . $colFinanciera->imagen_jpg;
                 if (file_exists($filePathImagen)) {
+                    $backup->addFile($filePathImagen, $colFinanciera->imagen_jpg);
                     if(unlink($filePathImagen)) {
                         $counts->deletedFiles++;
                         $counts->deletedFilesColFin++;
@@ -32,6 +33,7 @@ class ColumnaFinancieraController extends Controller
                 }
                 $filePathDoc = env('PATH_MEDIA_COL_FINANCIERAS') . $colFinanciera->archivo_pdf;
                 if (file_exists($filePathDoc)) {
+                    $backup->addFile($filePathDoc, $colFinanciera->archivo_pdf);
                     if(unlink($filePathDoc)) {
                         $counts->deletedFiles++;
                         $counts->deletedFilesColFin++;
