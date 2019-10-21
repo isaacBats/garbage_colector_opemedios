@@ -171,7 +171,13 @@ class ExampleController extends Controller
         $this->primeraPlanaController->deletePrimerasPlanas($primerasPlanas, $counts, $backup);
 
         $counts->bkNumberFiles = $backup->numFiles;
-        $backup->close();
+        $this->linfo("Archivos guardados: {$counts->bkNumberFiles}");
+        if ($backup->close()) {
+            $this->linfo("Archivo comprimido cerrado correctamente");
+        } else {
+            $backupError = $backup->getStatusString();
+            $this->lerror("{$backupError}");
+        }
 
         if ($counts->bkNumberFiles > 0) {
             if (BackupController::moveToS3($file_compress_name, $file_compress)) {
