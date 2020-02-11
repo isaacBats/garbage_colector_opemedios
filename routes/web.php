@@ -21,4 +21,6 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     $router->get('delete-cartones', 'ExampleController@deteleCartones');
 
     $router->get('system-info', 'SystemController@index');
+
+    $router->get('delete-tv-files', 'ExampleController@deleteTVFiles');
 });

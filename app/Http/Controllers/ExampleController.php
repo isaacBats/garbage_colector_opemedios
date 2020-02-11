@@ -191,4 +191,34 @@ class ExampleController extends Controller
 
         return response()->json(['reporte de noticias:' => $counts]);
     }
+
+    public function deleteTVFiles(Request $req) {
+
+        $fechaIni = $req->query('fecha_inicio');
+        $fechaFin = $req->query('fecha_fin');
+
+        $counts = $this->setup();
+        $backup = new \ZipArchive();
+
+        $noticias = $this->noticiaController->getTVNews($fechaIni, $fechaFin);
+        $counts->noticias = $noticias->count();
+
+        $groupBySource = array();
+        foreach ($noticias as $noticia) {
+            $groupBySource[$noticia->fuente][] = $noticia->id_noticia;
+        }
+
+        foreach ($groupBySource as $keyTipoFuente => $idNoticias) {
+            $this->noticiaController->deleteNewByType($keyTipoFuente, $idNoticias, $counts, $this->tiposFuente, $backup);
+        }
+
+        if ($backup->close()) {
+            $this->linfo("Archivo comprimido cerrado correctamente");
+        } else {
+            $backupError = $backup->getStatusString();
+            $this->lerror("{$backupError}");
+        }
+
+        return response()->json(['reporte de noticias:' => $counts]);
+    }
 }

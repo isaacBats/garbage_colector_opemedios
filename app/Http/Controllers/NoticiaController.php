@@ -24,6 +24,14 @@ class NoticiaController extends Controller
             ->get();
     }
 
+    public function getTVNews($dateMin, $dateMax) {
+
+        return Noticia::Select('id_noticia', 'id_tipo_fuente as fuente')
+            ->where('id_tipo_fuente', 1) 
+            ->whereBetween(DB::raw("date_format(fecha, '%Y-%m')"), [$dateMin, $dateMax])
+            ->get();
+    }
+
     public function findOrFail($id) {
         return Noticia::findOrFail($id);
     }
