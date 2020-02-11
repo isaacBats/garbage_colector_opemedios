@@ -39,14 +39,14 @@ class NoticiaController extends Controller
     public function deleteNewByType ($fontTypeId, $idNoticias, &$counts, $tiposFuente, &$backup) {
         
         $fontType = Arr::get($tiposFuente->toArray(), $fontTypeId - 1);
-        $fontUppercase = strtoupper(Str::slug($fontType['descripcion']));
-        $this->linfo("Buscando archivos de {$fontType['descripcion']} en la base de datos...");
+        $fontUppercase = strtoupper(Str::slug($fontType['media']));
+        $this->linfo("Buscando archivos de {$fontType['media']} en la base de datos...");
         $adjuntos = $this->adjuntoController->getAdjuntos($idNoticias);
         $labelAdjunto = "adjunto{$fontType['sigla']}";
         $labelDeleteFile = "deletedFiles{$fontType['sigla']}";
         $labelFileNotExist = "filesNotExist{$fontType['sigla']}";
         $counts->$labelAdjunto = $adjuntos->count();
-        $this->linfo("Se encontraron {$counts->$labelAdjunto} archivos de  {$fontType['descripcion']} en la base de datos");
+        $this->linfo("Se encontraron {$counts->$labelAdjunto} archivos de  {$fontType['media']} en la base de datos");
         if($counts->$labelAdjunto > 0) {
             $labelPathMedia ="PATH_MEDIA_{$fontUppercase}";
             foreach ($adjuntos as $archivo) {
